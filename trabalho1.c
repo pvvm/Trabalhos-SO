@@ -1,34 +1,32 @@
-/*
-Trabalho Pratíco 1 - Sistemas Operacionais
--- COLOQUEM SEUS NOMES AQUI --
-Pedro Vitor Valença Mizuno - 17/0043665
-Linux Ubuntu versao 18.04
-GCC versao 8.4.0
-*/
+/**
+ * Título: Trabalho Prático 1
+ * Disciplina: Sistemas Operacionais UnB 2020-1
+ * Responsáveis:
+ *     - Pedro Vitor Valença Mizuno 17/0043665
+ *     - Rodrigo Ferreira Guimarães 14/0170740
+ *     -
+ *     -
+ **/
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 
-int main(){
-    int pid, N;
-    int ppid = getpid();
+int main (int argc, char* argv[]){
+    if (argc < 2){
+        printf("Deveria informar, pelo menos, a quantidade de processos filhos como parâmetro\n");
+        exit(1);
+    }
 
-    printf("Quantos processos serao criados? ");
-    do
-        scanf("%d", &N);
-    while(N > 10 || N < 0);
+    int num_processos = (int) strtol(argv[1], NULL, 10),
+        ppid = getpid();
 
-    if(N > 0)
-        pid = fork();
+    for (int cnt = 0; cnt < num_processos; cnt++)
+        if (!fork()) break;
 
-    for(int i = 0; i < N-1; i++)
-        if(pid == 0)
-            pid = fork();
+    if (num_processos) sleep(10);
     
-    sleep(1);
+    printf("sou o processo %s com pid = %d\n", ppid == getpid() ? "pai" : "filho", getpid());
 
-    if(ppid == getpid())
-        printf("Sou o processo pai com pid=%d\n", getpid());
-    else
-        printf("Sou o processo filho com pid=%d\n", getpid());
+    return 0;
 }
