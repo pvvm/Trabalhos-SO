@@ -1,0 +1,37 @@
+Objetivo: Exercitar temporizadores com chamadas Unix
+
+Descrição:
+
+            Os alunos, em grupos de 4, devem confeccionar um código em C que crie 2 processos, P1 e P2. 
+
+           O processo P1 deve executar a primitiva de recepção de mensagens do Unix por 10 vezes e, caso haja mensagem na fila, deve imprimir "mensagem <conteúdo> recebida". Caso decorram 2 segundos e não haja mensagem na fila, o processo deve imprimir "ocorreu timeout - nao recebi mensagem em 2 s" e seguir para a recepção da próxima mensagem.  Atenção: o processo não pode esperar 2 segundos e depois testar se há mensagem. Dentro do tempo permitido (2s), logo que a mensagem for enviada, ela deve ser recebida.
+
+         O processo P2 deve enviar 10 mensagens contendo o seu pid e um número de 1 a 10, em intervalos aleatórios de tempo, que vão de 1 a 4 segundos. Ao enviar a mensagem, deve imprimir "mensagem <conteúdo> enviada". As chamadas C rand e srand devem ser utilizadas para manipular números aleatórios.
+
+         Nesse programa, além do mecanismo IPC msg, podem ser utilizadas as primitivas de envio e recepção de sinal. 
+
+Exemplo:
+
+            > temporizador
+
+               nao recebi mensagem em 2s
+
+               mensagem pid=730 numero=1 enviada
+
+               recebi mensagem pid=730 numero=1
+
+              ...
+
+ 
+
+Entrega:
+
+            Os alunos devem entregar o código fonte e, no início do código, devem fornecer (como comentário): (a) os nomes e matrículas dos integrantes do grupo; (b) a versão do SO no qual o programa foi testado; (c) a versão do compilador com o qual o programa foi compilado.
+
+ 
+
+Observação:
+
+            No trabalho, só devem ser usadas: (a) as chamadas de sistema do mecanismo msg e de manipulação de sinais; e (b) as bibliotecas standard do C.
+
+

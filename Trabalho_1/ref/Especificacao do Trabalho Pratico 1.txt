@@ -1,0 +1,17 @@
+Objetivo: Exercitar a criação de processos com o fork
+
+Descrição:
+Os alunos, em grupos de 4, devem confeccionar um código em C que crie n processos (n <= 10) e imprima o pid desses processos. Cada processo deve dormir por 30 segundos e depois terminar a execução. O parâmetro n deve ser obtido na linha de comando.
+
+Exemplo:
+    > fork_processos 3
+        sou o processo pai com pid=899
+        sou o processo filho com pid=901
+        sou o processo filho com pid=902
+        sou o processo filho com pid=903
+
+Entrega:
+Os alunos devem entregar o código fonte e, no início do código, devem fornecer (como comentário): (a) os nomes e matrículas dos integrantes do grupo; (b) a versão do SO no qual o programa foi testado; (c) a versão do compilador com o qual o programa foi compilado.
+
+Observação:
+No trabalho, só devem ser usadas as chamadas de sistema e as bibliotecas standard do C.
