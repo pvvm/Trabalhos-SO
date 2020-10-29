@@ -1,3 +1,14 @@
+/**********************************************************
+ ** Título: Trabalho Prático 3
+ ** Disciplina: Sistemas Operacionais UnB 2020-1
+ ** Finalidade: Exercitar temporizadores com chamadas Unix
+ ** Responsáveis:
+ **     - Pedro Vitor Valença Mizuno 17/0043665
+ **     - Rodrigo Ferreira Guimarães 14/0170740
+ ** Sistema operacional: Ubuntu 20.04.1 LTS
+ ** Compilador: GCC 9.3.0
+ *********************************************************/
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -8,6 +19,17 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/msg.h>
+
+/*  Erro no fork */
+#define ERRO_FORK 2
+
+#define ERRO_MSGGET 3
+
+#define ERRO_MSGSND 4
+
+#define ERRO_MSGRCV 5
+
+#define ERRO_MSGCTL 6
 
 void trataAlarme(int sinal) {
 
@@ -23,12 +45,12 @@ int main() {
     struct mensagem mensagem_env, mensagem_rec;
     if((idfila = msgget(0x1223, IPC_CREAT|0x1ff)) < 0) {
         printf("Erro na criacao da fila\n");
-        exit(1);
+        exit(ERRO_MSGGET);
     }
     srand(time(NULL));
     if((pid = fork()) == -1) {
         printf("Erro no fork\n");
-        exit(1);
+        exit(ERRO_FORK);
     } else if (pid == 0) {
         int tempo;
         mensagem_env.pid = getpid();
@@ -38,7 +60,10 @@ int main() {
             printf("%d\n", tempo);
             sleep(tempo);
             printf("mensagem pid=%ld num=%d enviada\n", mensagem_env.pid, mensagem_env.id);
-            msgsnd(idfila, &mensagem_env, sizeof(mensagem_env), 0);
+            if(msgsnd(idfila, &mensagem_env, sizeof(mensagem_env), 0) == -1) {
+                printf("Erro no envio de mensagem\n");
+                exit(ERRO_MSGSND);
+            }
         }
         exit(0);
     }
@@ -52,8 +77,8 @@ int main() {
                 if(errno == EINTR) {
                     printf("Ocorreu timeout - nao recebi mensagem em 2 segundos\n");
                 } else { 
-                    printf("erro no rcv %d\n", errno == EINTR);
-                    exit(1);
+                    printf("Erro no recebimento de mensagem %d\n", errno == EINTR);
+                    exit(ERRO_MSGRCV);
                 }
             } else
                 break;
@@ -63,8 +88,12 @@ int main() {
     }
     sigprocmask(SIG_SETMASK, &original, NULL);
 
-    msgctl(idfila, IPC_RMID, NULL);
+    if(msgctl(idfila, IPC_RMID, NULL) == -1) {
+        printf("Erro na remocao da fila de mensagem\n");
+        exit(ERRO_MSGCTL);
+    }
 
     wait(&estado);
-    exit(0);
+
+    return 0;
 }

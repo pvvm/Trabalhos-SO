@@ -64,7 +64,7 @@ int get_num_processos(int argc, char* argv[]){
     int num_processos = get_num_processos_de_arg(argc, argv);
 
     while (1){
-        if (num_processos > MIN_NUM_PROCESSOS && num_processos <= MAX_NUM_PROCESSOS)
+        if (num_processos >= MIN_NUM_PROCESSOS && num_processos <= MAX_NUM_PROCESSOS)
             return num_processos;
 
         printf("Entrada inválida, tente novamente!\n");
