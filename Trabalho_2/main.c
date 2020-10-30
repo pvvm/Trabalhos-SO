@@ -6,6 +6,7 @@
  ** Responsáveis:
  **     - Pedro Vitor Valença Mizuno 17/0043665
  **     - Rodrigo Ferreira Guimarães 14/0170740
+ **	- Alison de Miranda Péres    13/0039870
  ** Sistema operacional: Ubuntu 20.04.1 LTS
  ** Compilador: GCC 9.3.0
  *********************************************************/
