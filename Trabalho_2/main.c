@@ -41,7 +41,8 @@ enum erros {
     ERRO_SHM_GET,
     ERRO_SHM_ATC,
     ERRO_SHM_DTC,
-    ERRO_SHM_CTL
+    ERRO_SHM_CTL,
+    ERRO_FILHO
 };
 /**  Erro padrão do SO */
 #define ERRO_SISTEMA -1
@@ -126,6 +127,11 @@ int main (){
     shm_unlink(p_shm);
 
     wait(&retorno_filho);
+
+    if(retorno_filho != SUCESSO) {
+        printf("Processo filho retornou um exit de erro\n");
+        exit(ERRO_FILHO);
+    }
 
     shm_free(id_shm);
     sem_free(id_sem);
