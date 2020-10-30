@@ -28,7 +28,7 @@
 /* Máximo de processos que podem ser criados */
 #define MAX_NUM_PROCESSOS 10
 /* Tempo a ser esperado pelo processos */
-#define TEMPO_ESPERA 30
+#define TEMPO_ESPERA 1
 
 
 int get_num_processos_de_arg(int argc, char* argv[]);
@@ -37,7 +37,7 @@ long clonar_processo();
 
 
 int main (int argc, char* argv[]){
-    int num_processos = get_num_processos(argc, argv), lixo;
+    int num_processos = get_num_processos(argc, argv), lixo, ret_wait;
     long processo_pai_id = getpid();
 
     for (int cnt = 0; cnt < num_processos; cnt++)
@@ -47,8 +47,24 @@ int main (int argc, char* argv[]){
 
     printf("sou o processo %s com pid = %d\n", processo_pai_id == getpid() ? "pai" : "filho", getpid());
 
-    for (int cnt = 0; cnt < num_processos; cnt++)
+
+    /*for (int cnt = 0; cnt < num_processos; cnt++) {
         wait(&lixo);
+        if(wait(&lixo) == -1) {
+            if(lixo != 0)
+                printf("Processo filho do processo %d retornou um exit de erro\n", getpid());
+            exit(0);
+        }
+        lixo = 1;
+    }*/
+
+    ret_wait = wait(&lixo);
+
+    if(ret_wait != -1 && lixo != 0)
+        printf("Processo filho retornou um exit de erro\n");
+
+    if(processo_pai_id != getpid())
+        exit(0);
 
     return 0;
 }

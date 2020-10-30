@@ -20,23 +20,23 @@
 #include <time.h>
 #include <sys/msg.h>
 
-/*  Erro no fork */
-#define ERRO_FORK 2
+enum erros {
+    ERRO_FORK = 2,
+    ERRO_MSGGET,
+    ERRO_MSGSND,
+    ERRO_MSGRCV,
+    ERRO_MSGCTL,
+    ERRO_FILHO
+};
 
-#define ERRO_MSGGET 3
-
-#define ERRO_MSGSND 4
-
-#define ERRO_MSGRCV 5
-
-#define ERRO_MSGCTL 6
+#define SUCESSO 0
 
 void trataAlarme(int sinal) {
 
 } 
 
 int main() {
-    int pid, idfila, estado;
+    int pid, idfila, retorno_filho;
     sigset_t original, mascara;
     struct mensagem {
         long pid;
@@ -65,7 +65,7 @@ int main() {
                 exit(ERRO_MSGSND);
             }
         }
-        exit(0);
+        exit(SUCESSO);
     }
     signal(SIGALRM, trataAlarme);
     sigdelset(&mascara, SIGALRM);
@@ -93,7 +93,12 @@ int main() {
         exit(ERRO_MSGCTL);
     }
 
-    wait(&estado);
+    wait(&retorno_filho);
+
+    if(retorno_filho != SUCESSO) {
+        printf("Processo filho retornou um exit de erro\n");
+        exit(ERRO_FILHO);
+    }
 
     return 0;
 }
