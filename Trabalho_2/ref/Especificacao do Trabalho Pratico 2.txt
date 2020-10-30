@@ -1,0 +1,32 @@
+Objetivo:
+   Exercitar a sincronização two-way com chamadas Unix
+
+Descrição:
+   Os alunos, em grupos de 4, devem confeccionar um código em C que crie 2 processos, P1 e P2.
+
+   O processo P1 deve atualizar 20 vezes uma variável inteira em memória compartilhada (shm).
+   Essa variável vai assumir os valores de 1 a 20,  e o valor escrito será impresso em tela a cada
+   vez que a escrita ocorrer. O processo P2 deve ler a variável inteira em memória compartilhada (shm) e
+   imprimir em tela o valor lido. Deve ser garantido que todo dado escrito por P1 vai ser lido por P2
+   uma única vez.
+
+   Nesse programa, além do mecanismo IPC shm, podem ser utilizados os mecanismos IPC sem e/ou as primitivas
+   de envio e recepção de sinal. O programa deve ser livre de deadlock (claro).
+
+Exemplo:
+   > le_escreve
+      processo <pidp1> escreveu 1
+
+      processo <pidp2> leu 1
+
+      ...
+
+      processo <pidp1> escreveu 20
+
+      processo <pidp2> leu 20
+
+Entrega:
+   Os alunos devem entregar o código fonte e, no início do código, devem fornecer (como comentário): (a) os nomes e matrículas dos integrantes do grupo; (b) a versão do SO no qual o programa foi testado; (c) a versão do compilador com o qual o programa foi compilado.
+
+Observação:
+   No trabalho, só devem ser usadas: (a) as chamadas de sistema dos mecanismos  shm e sem e/ou de manipulação de sinais; e (b) as bibliotecas standard do C.

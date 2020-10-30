@@ -35,6 +35,7 @@ int get_num_processos_de_arg(int argc, char* argv[]);
 int get_num_processos(int argc, char* argv[]);
 long clonar_processo();
 
+
 int main (int argc, char* argv[]){
     int num_processos = get_num_processos(argc, argv), lixo;
     long processo_pai_id = getpid();
@@ -43,7 +44,7 @@ int main (int argc, char* argv[]){
         if (clonar_processo() == E_PROCESSO_FILHO) break;
 
     sleep(TEMPO_ESPERA);
-    
+
     printf("sou o processo %s com pid = %d\n", processo_pai_id == getpid() ? "pai" : "filho", getpid());
 
     for (int cnt = 0; cnt < num_processos; cnt++)
