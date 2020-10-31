@@ -47,25 +47,25 @@ enum erros {
 #define ERRO_SISTEMA -1
 
 /** Flags de acesso, baseado Unix: rwx(usuário) rwx(grupo) rwx(todos) **/
-#define IPC_FLG_USER_LER 0x100
-#define IPC_FLG_USER_ECV 0x080
-#define IPC_FLG_USER_CPT (IPC_FLG_USER_LER | IPC_FLG_USER_ECV)
-#define IPC_FLG_GROUP_LER 0x020
-#define IPC_FLG_GROUP_ECV 0x010
-#define IPC_FLG_GROUP_CPT (IPC_FLG_GROUP_LER | IPC_FLG_GROUP_ECV)
-#define IPC_FLG_USERS_LER 0x004
-#define IPC_FLG_USERS_ECV 0x002
-#define IPC_FLG_USERS_CPT (IPC_FLG_USERS_LER | IPC_FLG_USERS_ECV)
+#define FLG_USER_LER 0x100
+#define FLG_USER_ECV 0x080
+#define FLG_USER_CMPLT (FLG_USER_LER | FLG_USER_ECV)
+#define FLG_GROUP_LER 0x020
+#define FLG_GROUP_ECV 0x010
+#define FLG_GROUP_CMPLT (FLG_GROUP_LER | FLG_GROUP_ECV)
+#define FLG_USERS_LER 0x004
+#define FLG_USERS_ECV 0x002
+#define FLG_USERS_CMPLT (FLG_USERS_LER | FLG_USERS_ECV)
 
 /**  Chave padrão para os mecanismos IPC */
 #define CHAVE_IPC 0x24807916
 /**  Contador de iterações */
-#define CNT_INT 20
+#define CNT_LMT 20
 
 /** Idenficadores dos Semáforos */
 enum semaforos {
-    SEM_ESCREVEU,
-    SEM_LEU,
+    SEM_ESCRITA,
+    SEM_LEITURA,
 };
 
 /** Identificação de operação bem sucessida */
@@ -79,56 +79,55 @@ long clonar_processo ();
 void processo_filho (int id_shm, int id_sem);
 
 /** Gerência de semáforo */
-int sem_init (key_t key, int cnt, int flg);
+int sem_iniciar (key_t chave, int cnt, int flag_acesso);
 int sem_p (int id, int num);
 int sem_v (int id, int num);
-void sem_free (int id);
+void sem_liberar (int id);
 
 /** Gerência de memória compartilhada */
-int shm_init (key_t key, size_t tam, int flg);
-void* shm_link (int id, int flg);
-int shm_unlink (const void *endereço);
-void shm_free (int id);
+int shm_iniciar (key_t chave, size_t tam, int flag_acesso);
+void* shm_link (int id, int flag_acesso);
+int shm_unlink (const void *endereco);
+void shm_liberar (int id);
 
 
 int main (){
-    int id_sem = sem_init(
+    int id_sem = sem_iniciar(
         CHAVE_IPC,
         2,
-        IPC_CREAT | IPC_FLG_USER_CPT
+        IPC_CREAT | FLG_USER_CMPLT
     );
-    int id_shm = shm_init(
+    int id_shm = shm_iniciar(
         CHAVE_IPC,
         sizeof(int),
-        IPC_CREAT | IPC_FLG_USER_CPT
+        IPC_CREAT | FLG_USER_CMPLT
     );
-    long pid = clonar_processo();
 
-    if (pid == E_PROCESSO_FILHO){
+    if (clonar_processo() == E_PROCESSO_FILHO){
         processo_filho(id_shm, id_sem);
 
         exit(SUCESSO);
     }
 
     int retorno_filho;
-    int *p_shm = (int *) shm_init(id_shm, IPC_FLG_USER_LER);
+    int *p_shm = (int *) shm_link(id_shm, FLG_USER_LER);
 
-    sem_p(id_sem, SEM_ESCREVEU);
+    sem_p(id_sem, SEM_ESCRITA);
 
-    for (int cnt = 0; cnt < CNT_INT; cnt++){
-        sem_p(id_sem, SEM_ESCREVEU);
+    for (int cnt = 0; cnt < CNT_LMT; cnt++){
+        sem_p(id_sem, SEM_ESCRITA);
 
-        printf("processo %d leu %d\n", getpid(), *p_shm);
+        printf("processo %d leu %d\n\n", getpid(), *p_shm);
 
-        sem_v(id_sem, SEM_LEU);
+        sem_v(id_sem, SEM_LEITURA);
     }
 
     shm_unlink(p_shm);
 
     wait(&retorno_filho);
 
-    shm_free(id_shm);
-    sem_free(id_sem);
+    shm_liberar(id_shm);
+    sem_liberar(id_sem);
 
     return SUCESSO;
 }
@@ -138,7 +137,7 @@ int main (){
  *  Clonagem a partir do processo atual, com tratamento de eventual
  *  problema
  *  @return ID do processo filho criado ou E_PROCESSO_FILHO para o processo
- *  recém criado
+ *  recém criado, ou saída do programa com código ERRO_FORK
  */
 long clonar_processo (){
     int pid = fork();
@@ -156,15 +155,15 @@ long clonar_processo (){
  *  @param id_sem Idenficador do semáforo
  */
 void processo_filho (int id_shm, int id_sem){
-    int *p_shm = (int *) shm_link(id_shm, IPC_FLG_USER_ECV);
+    int *p_shm = (int *) shm_link(id_shm, FLG_USER_ECV);
 
-    for (int cnt = 1; cnt <= CNT_INT; cnt++){
-        sem_p(id_sem, SEM_LEU);
+    for (int cnt = 1; cnt <= CNT_LMT; cnt++){
+        sem_p(id_sem, SEM_LEITURA);
 
         *p_shm = cnt;
         printf("processo %d escreveu %d\n", getpid(), *p_shm);
 
-        sem_v(id_sem, SEM_ESCREVEU);
+        sem_v(id_sem, SEM_ESCRITA);
     }
 
     shm_unlink(p_shm);
@@ -175,12 +174,12 @@ void processo_filho (int id_shm, int id_sem){
  *  Aquisição de semáforos
  *  @param key Chave de identificação do semáforo
  *  @param cnt Quantidade de semáforos a serem criados
- *  @param flg Flags da aquisição
- *  @return Idenficador do conjunto de semáforo adquiridos, ou
- *  sai do programa com código ERRO_SEM_GET
+ *  @param flag_acesso Flags da aquisição
+ *  @return Idenficador do conjunto de semáforos adquiridos, ou
+ *  saída do programa com código ERRO_SEM_GET
  */
-int sem_init (key_t key, int cnt, int flg){
-    int id = semget(key, cnt, semflg);
+int sem_iniciar (key_t chave, int cnt, int flag_acesso){
+    int id = semget(chave, cnt, flag_acesso);
 
     if (id == ERRO_SISTEMA){
         perror("Erro na aquisição do semáforo");
@@ -193,7 +192,7 @@ int sem_init (key_t key, int cnt, int flg){
  *  Bloqueio de semáforo
  *  @param id_sem Idenficador do conjunto de semáforo
  *  @param num Número do semáforo
- *  @return SUCESSO, ou sai do programa com código ERRO_SEM_P
+ *  @return SUCESSO, ou saída do programa com código ERRO_SEM_P
  */
 int sem_p (int id_sem, int num){
     struct sembuf operacao[2];
@@ -219,12 +218,12 @@ int sem_p (int id_sem, int num){
  *  Desbloqueio do semáforo
  *  @param id_sem Idenficador do conjunto de semáforo
  *  @param num Número do semáforo
- *  @return SUCESSO, ou sai do programa com código ERRO_SEM_V
+ *  @return SUCESSO, ou saída do programa com código ERRO_SEM_V
  */
-int sem_v (int id_sem, int semnum){
+int sem_v (int id_sem, int num){
     struct sembuf operacao;
 
-    operacao.sem_num = semnum;
+    operacao.sem_num = num;
     operacao.sem_op = -1;
     operacao.sem_flg = 0;
 
@@ -240,7 +239,7 @@ int sem_v (int id_sem, int semnum){
  *  @param id Idenficador do conjunto de semáforo
  *  @return Void ou saída do programa com código ERRO_SHM_CTL
  */
-void sem_free (int id){
+void sem_liberar (int id){
     if (semctl(id, 0, IPC_RMID) == ERRO_SISTEMA){
         perror("Erro na liberação do semáforo");
         exit(ERRO_SEM_CTL);
@@ -252,12 +251,12 @@ void sem_free (int id){
  *  Aquisição de memória compartilhada
  *  @param key Chave de identificação do semáforo
  *  @param tam Tamanho em bytes da memória compartilhada
- *  @param flg Flags da aquisição
+ *  @param flag_acesso Flags da aquisição
  *  @return Idenficador da memória compartilhada adquirida, ou
- *  sai do programa com código ERRO_SHM_GET
+ *  saída do programa com código ERRO_SHM_GET
  */
-int shm_init (key_t key, size_t tam, int flg){
-    int id = shmget(key, tam, shmflg);
+int shm_iniciar (key_t chave, size_t tam, int flag_acesso){
+    int id = shmget(chave, tam, flag_acesso);
 
     if (id == ERRO_SISTEMA){
         perror("Erro na aquisição da memória compartilhada");
@@ -269,12 +268,12 @@ int shm_init (key_t key, size_t tam, int flg){
 /**
  *  Ligação à memória compartilhada
  *  @param id Idenficador da memória compartilhada
- *  @param flg Flags da ligação
+ *  @param flag_acesso Flags da ligação
  *  @return Ponteiro para a memória vinculada, ou
  *  saída do programa com código ERRO_SHM_ATC
  */
-void* shm_link (int id, int flg){
-    void *endereco = shmat(id, (void *) 0, flg);
+void* shm_link (int id, int flag_acesso){
+    void *endereco = shmat(id, (void *) 0, flag_acesso);
 
     if (endereco == (void *) ERRO_SISTEMA){
         perror("Erro na ligação com a memória compartilhada");
@@ -285,12 +284,12 @@ void* shm_link (int id, int flg){
 }
 /**
  *  Desfazer ligação à memória compartilhada
- *  @param endereço Ponteiro para a memória vinculada
+ *  @param endereco Ponteiro para a memória vinculada
  *  @return Retorno da chamada de sistema, ou
- *  sai do programa com código ERRO_SHM_DTC
+ *  saída do programa com código ERRO_SHM_DTC
  */
-int shm_unlink (const void *endereço){
-    int retorno = shmdt(endereço);
+int shm_unlink (const void *endereco){
+    int retorno = shmdt(endereco);
 
     if (retorno == ERRO_SISTEMA){
         perror("Erro ao defazer link à memória compartilhada");
@@ -304,7 +303,7 @@ int shm_unlink (const void *endereço){
  *  @param id Idenficador da memória compartilhada
  *  @return Void ou saída do programa com código ERRO_SHM_CTL
  */
-void shm_free (int id){
+void shm_liberar (int id){
     if (shmctl(id, IPC_RMID, NULL) == ERRO_SISTEMA){
         perror("Erro ao liberar a memória compartilhada");
         exit(ERRO_SHM_CTL);
