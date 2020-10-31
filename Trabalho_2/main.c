@@ -43,7 +43,7 @@ enum erros {
     ERRO_SHM_DTC,
     ERRO_SHM_CTL
 };
-/**  Erro padrão do SO */
+/**  Erro padrão das chamadas de sistema */
 #define ERRO_SISTEMA -1
 
 /** Flags de acesso, baseado Unix: rwx(usuário) rwx(grupo) rwx(todos) **/
