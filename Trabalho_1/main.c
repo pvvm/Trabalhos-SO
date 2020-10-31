@@ -5,6 +5,7 @@
  ** Responsáveis:
  **     - Pedro Vitor Valença Mizuno 17/0043665
  **     - Rodrigo Ferreira Guimarães 14/0170740
+ **	- Alison de Miranda Péres    13/0039870
  ** Sistema operacional: Ubuntu 20.04.1 LTS
  ** Compilador: GCC 9.3.0
  *********************************************************/
@@ -13,6 +14,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 
 /**  Erro padrão das chamadas de sistema */
 #define ERRO_SISTEMA -1
@@ -21,6 +23,8 @@
 
 /* Argumentos inválido */
 #define ARG_INVALIDO -1
+/** Identificação de operação bem sucessida */
+#define SUCESSO 0
 /* Processo idenficado como sendo o filho */
 #define E_PROCESSO_FILHO 0
 
@@ -29,7 +33,9 @@
 /* Máximo de processos que podem ser criados */
 #define MAX_NUM_PROCESSOS 10
 /* Tempo a ser esperado pelo processos */
-#define TEMPO_ESPERA 30
+#define TEMPO_ESPERA 5
+/*  Caracterização para qualquer processo filho */
+#define QLQ_FILHO -1
 
 
 /** Gerência de processos */
@@ -42,9 +48,11 @@ int get_num_processos (int argc, char* argv[]);
 
 int main (int argc, char* argv[]){
     int num_processos = get_num_processos(argc, argv);
-    int retorno_filho;
+    int retorno_filho, retorno_wait;
     long processo_pai_id = getpid(),
          processo_atual_id;
+
+    srand(time(NULL));
 
     for (int cnt = 0; cnt < num_processos; cnt++)
         if (clonar_processo() == E_PROCESSO_FILHO) break;
@@ -54,10 +62,12 @@ int main (int argc, char* argv[]){
 
     printf("sou o processo %s com pid = %ld\n", processo_pai_id == processo_atual_id ? "pai" : "filho", processo_atual_id);
 
-    for (int cnt = 0; cnt < num_processos; cnt++)
-        wait(&retorno_filho);
+    while ((retorno_wait = waitpid(QLQ_FILHO, &retorno_filho, 0)) != ERRO_SISTEMA) {
+        if (WEXITSTATUS(retorno_filho) != SUCESSO)
+            printf("Processo %d era filho e retornou com erro: %d\n", retorno_wait, WEXITSTATUS(retorno_filho));
+    }
 
-    return 0;
+    return SUCESSO;
 }
 
 /** Gerência de processos **/

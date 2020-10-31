@@ -6,6 +6,7 @@
  ** Responsáveis:
  **     - Pedro Vitor Valença Mizuno 17/0043665
  **     - Rodrigo Ferreira Guimarães 14/0170740
+ **	- Alison de Miranda Péres    13/0039870
  ** Sistema operacional: Ubuntu 20.04.1 LTS
  ** Compilador: GCC 9.3.0
  *********************************************************/
@@ -41,7 +42,8 @@ enum erros {
     ERRO_SHM_GET,
     ERRO_SHM_ATC,
     ERRO_SHM_DTC,
-    ERRO_SHM_CTL
+    ERRO_SHM_CTL,
+    ERRO_FILHO
 };
 /**  Erro padrão das chamadas de sistema */
 #define ERRO_SISTEMA -1
@@ -125,6 +127,11 @@ int main (){
     shm_unlink(p_shm);
 
     wait(&retorno_filho);
+
+    if(retorno_filho != SUCESSO) {
+        printf("Processo filho retornou um exit de erro\n");
+        exit(ERRO_FILHO);
+    }
 
     shm_liberar(id_shm);
     sem_liberar(id_sem);
