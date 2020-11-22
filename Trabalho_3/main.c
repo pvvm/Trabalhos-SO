@@ -35,7 +35,7 @@ enum erros {
 
 /* Função de tratamento */
 void trataAlarme(int sinal) {
-
+// Não faz nada
 } 
 
 int main() {
@@ -47,7 +47,7 @@ int main() {
     };
     struct mensagem mensagem_env, mensagem_rec;
     /* Função de criação da fila*/
-    if((idfila = msgget(0x1223, IPC_CREAT|0x1ff)) < 0) {
+    if((idfila = msgget(0x654070, IPC_CREAT|0x1ff)) < 0) {
         printf("Erro na criacao da fila\n");
         exit(ERRO_MSGGET);
     }
@@ -80,9 +80,11 @@ int main() {
     for(int i = 1; i <= 10; i++) {
         /* Seta um alarme por 2 segundos */
         alarm(2);
-        while(1) {
             //Aguarda o recebimento de mensagem pela fila
-            if(msgrcv(idfila, &mensagem_rec, sizeof(mensagem_rec), 0, 0) == -1) {
+            if(msgrcv(idfila, &mensagem_rec, sizeof(mensagem_rec), 0, 0) != -1){
+                printf("recebi mensagem pid=%ld num=%d\n", mensagem_rec.pid, mensagem_rec.id);                
+            }
+            else {
                 /* Caso o alarme dispare, isto é, passe dois segundos, é enviado um sinal de interrupção */
                 if(errno == EINTR) {
                     printf("Ocorreu timeout - nao recebi mensagem em 2 segundos\n");
@@ -90,20 +92,16 @@ int main() {
                     printf("Erro no recebimento de mensagem %d\n", errno == EINTR);
                     exit(ERRO_MSGRCV);
                 }
-            } else
-                break;
-            
-        }
-        printf("recebi mensagem pid=%ld num=%d\n", mensagem_rec.pid, mensagem_rec.id);    
+            } 
+  
     }
     sigprocmask(SIG_SETMASK, &original, NULL);
+    wait(&retorno_filho);
     /* Remove a fila */
     if(msgctl(idfila, IPC_RMID, NULL) == -1) {
         printf("Erro na remocao da fila de mensagem\n");
         exit(ERRO_MSGCTL);
     }
-
-    wait(&retorno_filho);
 
     if(retorno_filho != SUCESSO) {
         printf("Processo filho retornou um exit de erro\n");
